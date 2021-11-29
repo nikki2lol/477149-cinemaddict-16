@@ -13,7 +13,7 @@ const header = document.querySelector('.header');
 const main = document.querySelector('.main');
 const footer = document.querySelector('.footer');
 
-renderTemplate(header, createRankTemplate());
+renderTemplate(header, createRankTemplate(), RenderPosition.BEFOREEND);
 renderTemplate(main, createMenuTemplate());
 renderTemplate(main, createSortTemplate());
 renderTemplate(main, createMainContentTemplate());
