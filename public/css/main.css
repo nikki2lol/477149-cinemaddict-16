@@ -569,6 +569,11 @@ button {
   overflow-y: auto;
 }
 
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .film-details__inner {
   background-color: #212126;
 }
