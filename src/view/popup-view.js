@@ -17,7 +17,7 @@ const createCommentTemplate = (comments) => comments.map((item) => {
       </p>
     </div>
   </li>`;
-}).join('\n');
+}).join('');
 
 
 export const createMoviePopupTemplate = (movie) => {

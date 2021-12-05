@@ -17,7 +17,6 @@ export const getRandomList = (array, maxLength) => {
   const result = new Array(maxLength);
   let len = array.length;
   const taken = new Array(len);
-  console.log(maxLength);
   while (maxLength--) {
     const x = Math.floor(Math.random() * len);
     result[maxLength] = array[x in taken ? taken[x] : x];
