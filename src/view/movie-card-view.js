@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 import {humanizeDuration} from '../utils';
+import {createElement} from '../render';
 
 
-export const createMovieCardTemplate = (movie) => {
+const createMovieCardTemplate = (movie) => {
   const {
     movieData: {
       title,
@@ -38,8 +39,7 @@ export const createMovieCardTemplate = (movie) => {
     : 'film-card__controls-item--favorite';
 
 
-  return `
-          <article class="film-card">
+  return `<article class="film-card">
           <a class="film-card__link">
             <h3 class="film-card__title">${title}</h3>
             <p class="film-card__rating">${rating}</p>
@@ -60,3 +60,29 @@ export const createMovieCardTemplate = (movie) => {
         </article>
   `;
 };
+
+
+export default class MovieCardView {
+  #element = null;
+  #movie = null;
+
+  constructor(movie) {
+    this.#movie = movie;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createMovieCardTemplate(this.#movie);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
