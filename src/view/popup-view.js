@@ -1,5 +1,6 @@
 import {humanizeDuration, humanizeReleaseDate} from '../utils';
 import {generateComment} from '../mock/comment';
+import {createElement} from '../render';
 
 const createCommentTemplate = (comments) => comments.map((item) => {
   const { emote, comment, author, date } = item;
@@ -19,8 +20,7 @@ const createCommentTemplate = (comments) => comments.map((item) => {
   </li>`;
 }).join('');
 
-
-export const createMoviePopupTemplate = (movie) => {
+const createMoviePopupTemplate = (movie) => {
   const {
     movieData: {
       title,
@@ -62,8 +62,7 @@ export const createMoviePopupTemplate = (movie) => {
     ? 'film-details__control-button--favorite film-details__control-button--active'
     : 'film-details__control-button--favorite';
 
-  return `
-<section class="film-details">
+  return `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
       <div class="film-details__close">
@@ -176,3 +175,31 @@ export const createMoviePopupTemplate = (movie) => {
 </section>
 `;
 };
+
+
+export default class PopupView {
+  #element = null;
+  #movie = null;
+
+  constructor(movie) {
+    this.#movie = movie;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createMoviePopupTemplate(this.#movie);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
+
+

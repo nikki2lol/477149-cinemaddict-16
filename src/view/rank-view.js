@@ -1,7 +1,5 @@
-// 0 — блок со званием не отображается;
-// от 1 до 10 — novice;
-// от 11 до 20 — fan;
-// от 21 и выше — movie buff.
+import {createElement} from '../render.js';
+
 const getUserRank = (count) => {
   let userRank = null;
 
@@ -17,10 +15,35 @@ const getUserRank = (count) => {
   return userRank;
 };
 
-export const createRankTemplate = (counter) => {
+const createRankTemplate = (counter) => {
   const userRank = getUserRank(counter);
   return `<section class="header__profile profile">
     <p class="profile__rating">${userRank}</p>
     <img class="profile__avatar" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
   </section>`;
 };
+
+export default class RankView {
+  #element = null;
+  #counter = null;
+
+  constructor(counter) {
+    this.#counter = counter;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createRankTemplate(this.#counter);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
