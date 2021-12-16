@@ -1,6 +1,7 @@
+import {createElement} from '../render.js';
+
 const createDetailsTemplate = () =>
-  `
-    <section class="films-list films-list--extra">
+  `<section class="films-list films-list--extra">
       <h2 class="films-list__title">Top rated</h2>
 
       <div class="films-list__container">
@@ -93,4 +94,23 @@ const createDetailsTemplate = () =>
     </section>
 `;
 
-export {createDetailsTemplate};
+export default class AnotherBlockView {
+  #element = null;
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+
+    return this.#element;
+  }
+
+  get template() {
+    return createDetailsTemplate();
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
+
