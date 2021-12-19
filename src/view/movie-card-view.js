@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 import {humanizeDuration} from '../utils';
 import {createElement} from '../render';
 
-
 const createMovieCardTemplate = (movie) => {
   const {
     movieData: {
