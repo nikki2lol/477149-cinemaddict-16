@@ -5,7 +5,7 @@ import {
   getRandomInteger,
   getRandomItem,
   getRandomList, getRandomNumber
-} from '../utils.js';
+} from '../utils/utils.js';
 import { POSTERS, AGE_RATING, GENRES, DESCRIPTION, NAMES, COUNTRIES } from '../mock-data.js';
 
 

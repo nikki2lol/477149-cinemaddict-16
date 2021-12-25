@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { COMMENTS, EMOJI, NAMES } from '../mock-data.js';
-import {getRandomItem, generateRandomDate, humanizeCommentDate} from '../utils.js';
+import {getRandomItem, generateRandomDate, humanizeCommentDate} from '../utils/utils.js';
 
 export const generateComment = (id) => {
   const emote = getRandomItem(EMOJI);
