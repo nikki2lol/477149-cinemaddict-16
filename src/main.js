@@ -6,8 +6,8 @@ import FilterView from './view/filter-view';
 import SortView from './view/sort-view';
 import StatsView from './view/stats-view';
 import PopupView from './view/popup-view';
-import LoadingView from './view/loading-view';
-import {render} from './render';
+import ListEmptyView from './view/list-empty-view';
+import {render} from './utils/render';
 import {generateFilter} from './mock/filters';
 import {generateMovieCard} from './mock/movie';
 
@@ -37,6 +37,7 @@ const renderMovieCard = (container, movie) => {
     bodyEl.classList.remove('hide-overflow');
     bodyEl.removeChild(moviePopupComponent.element);
   };
+
   const onEscKeyDown = (evt) => {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
@@ -44,14 +45,14 @@ const renderMovieCard = (container, movie) => {
       document.removeEventListener('keydown', onEscKeyDown);
     }
   };
-  movieCardComponent.element.querySelector('.film-card__link').addEventListener('click', () => {
+
+  movieCardComponent.setClickHandler(() => {
     onShowDetailsCard();
-    bodyEl.classList.add('hide-overflow');
     document.addEventListener('keydown', onEscKeyDown);
   });
-  moviePopupComponent.element.querySelector('.film-details__close-btn').addEventListener('click', () => {
+
+  moviePopupComponent.setClickHandler(() => {
     onCloseFilmDetailsCard();
-    bodyEl.classList.remove('hide-overflow');
     document.removeEventListener('keydown', onEscKeyDown);
   });
 
@@ -66,7 +67,7 @@ const renderMovieList = (container, list) =>{
   const moviesListElement = moviesElement.querySelector('.films-list__container');
 
   if (movies.length === 0){
-    render(moviesListElement, new LoadingView().element);
+    render(moviesListElement, new ListEmptyView());
     return;
   }
 
@@ -76,12 +77,11 @@ const renderMovieList = (container, list) =>{
 
   if (movies.length > MOVIES_COUNT_PER_STEP) {
     let renderedPart = MOVIES_COUNT_PER_STEP;
-    const LoadMoreButton = new LoadMoreButtonView();
-    render(moviesElement, LoadMoreButton.element);
+    const loadMoreButton = new LoadMoreButtonView();
 
-    LoadMoreButton.element.addEventListener('click', (evt) => {
-      evt.preventDefault();
+    render(moviesElement, loadMoreButton);
 
+    loadMoreButton.setClickHandler(() => {
       movies
         .slice(renderedPart, renderedPart + MOVIES_COUNT_PER_STEP)
         .forEach((movie) => renderMovieCard(moviesListElement, movie));
@@ -89,16 +89,16 @@ const renderMovieList = (container, list) =>{
       renderedPart += MOVIES_COUNT_PER_STEP;
 
       if (renderedPart >= movies.length) {
-        LoadMoreButton.element.remove();
-        LoadMoreButton.removeElement();
+        loadMoreButton.element.remove();
+        loadMoreButton.removeElement();
       }
     });
   }
 };
 
-render(header, new RankView(alreadyWatchedCounter).element);
-render(footer, new StatsView(MOVIES_TOTAL).element);
-render(main, new SortView().element);
-render(main, new FilterView(filters).element);
+render(header, new RankView(alreadyWatchedCounter));
+render(footer, new StatsView(MOVIES_TOTAL));
+render(main, new SortView());
+render(main, new FilterView(filters));
 
 renderMovieList(main, movies);

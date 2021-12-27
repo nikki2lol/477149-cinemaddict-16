@@ -1,6 +1,6 @@
-import {humanizeDuration, humanizeReleaseDate} from '../utils';
+import {humanizeDuration, humanizeReleaseDate} from '../utils/utils';
 import {generateComment} from '../mock/comment';
-import {createElement} from '../render';
+import AbstractView from './abstract-view';
 
 const createCommentTemplate = (comments) => comments.map((item) => {
   const { emote, comment, author, date } = item;
@@ -177,29 +177,27 @@ const createMoviePopupTemplate = (movie) => {
 };
 
 
-export default class PopupView {
-  #element = null;
+export default class PopupView extends AbstractView{
   #movie = null;
 
   constructor(movie) {
+    super();
     this.#movie = movie;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createMoviePopupTemplate(this.#movie);
   }
 
-  removeElement() {
-    this.#element = null;
-  }
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.element.addEventListener('click', this.#clickHandler);
+  };
+
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.click();
+  };
 }
 
 

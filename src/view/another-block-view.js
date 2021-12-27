@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from './abstract-view.js';
 
 const createDetailsTemplate = () =>
   `<section class="films-list films-list--extra">
@@ -94,23 +94,9 @@ const createDetailsTemplate = () =>
     </section>
 `;
 
-export default class AnotherBlockView {
-  #element = null;
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
+export default class AnotherBlockView extends AbstractView{
   get template() {
     return createDetailsTemplate();
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
 

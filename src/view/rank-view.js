@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from './abstract-view';
 
 const getUserRank = (count) => {
   let userRank = null;
@@ -23,27 +23,16 @@ const createRankTemplate = (counter) => {
   </section>`;
 };
 
-export default class RankView {
-  #element = null;
+export default class RankView extends AbstractView{
   #counter = null;
 
   constructor(counter) {
+    super();
     this.#counter = counter;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createRankTemplate(this.#counter);
   }
 
-  removeElement() {
-    this.#element = null;
-  }
 }
