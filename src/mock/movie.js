@@ -48,19 +48,12 @@ const generateMovieInfo = () => {
   };
 };
 
-const generateUserData = () => {
-  const isInWatchlist = Boolean(getRandomInteger(0, 1));
-  const isAlreadyWatched = Boolean(getRandomInteger(0, 1));
-  const isFavorite = Boolean(getRandomInteger(0, 1));
-  const watchDate = isAlreadyWatched && generateRandomDate(dayjs('1994-05-12'), dayjs());
-
-  return {
-    isInWatchlist,
-    isAlreadyWatched,
-    isFavorite,
-    watchDate,
-  };
-};
+const generateUserData = () => ({
+  isInWatchlist: Boolean(getRandomInteger(0, 1)),
+  isAlreadyWatched: Boolean(getRandomInteger(0, 1)),
+  isFavorite: Boolean(getRandomInteger(0, 1)),
+  watchDate: generateRandomDate(dayjs('1994-05-12'), dayjs()),
+});
 
 export const generateMovieCard = () => {
   const id = nanoid();
