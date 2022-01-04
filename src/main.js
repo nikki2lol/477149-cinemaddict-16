@@ -17,5 +17,5 @@ const movieListPresenter = new MovieListPresenter(main);
 render(header, new RankView(alreadyWatchedCounter));
 render(main, mainNavigationComponent);
 
-movieListPresenter.init(movies, filters);
+movieListPresenter.init(movies);
 

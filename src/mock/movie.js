@@ -4,10 +4,11 @@ import {
   generateRandomDate,
   getRandomInteger,
   getRandomItem,
-  getRandomList, getRandomNumber
+  getRandomList,
+  getRandomNumber
 } from '../utils/utils.js';
 import { POSTERS, AGE_RATING, GENRES, DESCRIPTION, NAMES, COUNTRIES } from '../mock-data.js';
-
+import {generateComment} from './comment';
 
 const getTitle = (posterFileName) => {
   const title = posterFileName.split('.')[0].split('-').join(' ');
@@ -15,6 +16,25 @@ const getTitle = (posterFileName) => {
 };
 
 const generateTotalRating = () => `${getRandomInteger(1, 9)}.${getRandomInteger(0, 9)}`;
+
+
+const createCommentTemplate = (comments) => comments.map((item) => {
+  const { emote, comment, author, date } = item;
+
+  return `<li class="film-details__comment">
+    <span class="film-details__comment-emoji">
+      <img src="./images/emoji/${emote}.png" width="55" height="55" alt="emoji-${emote}">
+    </span>
+    <div>
+      <p class="film-details__comment-text">${comment}</p>
+      <p class="film-details__comment-info">
+        <span class="film-details__comment-author">${author}</span>
+        <span class="film-details__comment-day">${date}</span>
+        <button class="film-details__comment-delete">Delete</button>
+      </p>
+    </div>
+  </li>`;
+}).join('');
 
 const generateMovieInfo = () => {
   const posterPath = getRandomItem(POSTERS);
@@ -30,6 +50,9 @@ const generateMovieInfo = () => {
   const director = getRandomItem(NAMES);
   const writers = getRandomList(NAMES, getRandomNumber(1,4));
   const actors = getRandomList(NAMES, getRandomNumber(3,10));
+  const comments = Array.from({ length: getRandomInteger(0, 5) }, nanoid);
+  const commentsArray = comments.map(generateComment);
+  const commentsListTemplate = createCommentTemplate(commentsArray);
 
   return {
     posterPath,
@@ -45,6 +68,8 @@ const generateMovieInfo = () => {
     duration,
     genres,
     description,
+    comments,
+    commentsListTemplate
   };
 };
 
@@ -57,7 +82,6 @@ const generateUserData = () => ({
 
 export const generateMovieCard = () => {
   const id = nanoid();
-  const comments = Array.from({ length: getRandomInteger(0, 5) }, nanoid);
   const movieData = generateMovieInfo();
   const userData = generateUserData();
 
@@ -65,6 +89,5 @@ export const generateMovieCard = () => {
     id,
     movieData,
     userData,
-    comments,
   };
 };

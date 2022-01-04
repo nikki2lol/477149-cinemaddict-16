@@ -12,13 +12,13 @@ const createMovieCardTemplate = (movie) => {
       duration,
       genres,
       description,
+      comments
     },
     userData: {
       isInWatchlist: isInWatchlist,
       isAlreadyWatched: isWatched,
       isFavorite: isFavorite,
     },
-    comments
   } = movie;
 
   const formattedYear = dayjs(releaseDate).format('YYYY');
