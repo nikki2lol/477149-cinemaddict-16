@@ -1,8 +1,17 @@
 import {humanizeDuration, humanizeReleaseDate} from '../utils/utils';
-import AbstractView from './abstract-view';
+import SmartView from './smart-view';
+import {EMOJI} from '../mock-data';
+import CommentView from './comment-view';
 
+const createEmojiElement = (emoji, activeEmoji) => (
+  `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}"
+    value="${emoji}" ${activeEmoji === emoji ? 'checked' : ''}>
+  <label class="film-details__emoji-label" for="emoji-${emoji}">
+    <img data-emoji="${emoji}" src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
+  </label>`
+);
 
-const createMoviePopupTemplate = (movie) => {
+const createMoviePopupTemplate = (movie, commentsArray) => {
   const {
     movieData: {
       title,
@@ -19,7 +28,7 @@ const createMoviePopupTemplate = (movie) => {
       genres,
       description,
       comments,
-      commentsListTemplate
+      // commentsListTemplate
     },
     userData: {
       isInWatchlist,
@@ -27,6 +36,8 @@ const createMoviePopupTemplate = (movie) => {
       isFavorite,
     },
   } = movie;
+  const {test} = commentsArray;
+  console.log(test, 'commentsArray', comments, 'movie.comments');
 
   const formattedDuration = humanizeDuration(duration);
   const formattedReleaseDate = humanizeReleaseDate(releaseDate);
@@ -42,6 +53,9 @@ const createMoviePopupTemplate = (movie) => {
   const favoriteClassName = isFavorite
     ? 'film-details__control-button--favorite film-details__control-button--active'
     : 'film-details__control-button--favorite';
+
+  const commentsList = commentsArray.map((comment) => new CommentView(comment).template).join('');
+  const emojiList = EMOJI.map((emoji) => createEmojiElement(emoji, activeEmoji)).join('');
 
   return `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
@@ -106,11 +120,11 @@ const createMoviePopupTemplate = (movie) => {
         </div>
       </div>
 
-        <section class="film-details__controls">
-          <button type="button" class="film-details__control-button ${watchlistClassName}" id="watchlist" name="watchlist">Add to watchlist</button>
-          <button type="button" class="film-details__control-button ${watchedClassName}" id="watched" name="watched">Already watched</button>
-          <button type="button" class="film-details__control-button ${favoriteClassName}" id="favorite" name="favorite">Add to favorites</button>
-        </section>
+      <section class="film-details__controls">
+        <button type="button" class="film-details__control-button ${watchlistClassName}" id="watchlist" name="watchlist">Add to watchlist</button>
+        <button type="button" class="film-details__control-button ${watchedClassName}" id="watched" name="watched">Already watched</button>
+        <button type="button" class="film-details__control-button ${favoriteClassName}" id="favorite" name="favorite">Add to favorites</button>
+      </section>
     </div>
 
     <div class="film-details__bottom-container">
@@ -158,46 +172,87 @@ const createMoviePopupTemplate = (movie) => {
 };
 
 
-export default class PopupView extends AbstractView{
-  #movie = null;
+export default class PopupView extends SmartView{
+  #comments = [];
 
-  constructor(movie) {
+  constructor(movie, comments) {
     super();
-    this.#movie = movie;
+    this._data = PopupView.parseMovieToData(movie);
+    this.#comments = comments;
+    this.#setInnerHandlers();
   }
 
   get template() {
-    return createMoviePopupTemplate(this.#movie);
+    return createMoviePopupTemplate(this._data, this.#comments);
   }
 
-  setAddToWatchClickHandler = (callback) => {
-    this._callback.addToWatchPopup = callback;
-    this.element.querySelector('.film-details__control-button--watchlist').addEventListener('click', this.#addtoWatchListClickHandler);
+  get movieData() {
+    return this._data;
   }
 
-  #addtoWatchListClickHandler = (evt) => {
+  restoreHandlers = () => {
+    this.#setInnerHandlers();
+    this.setCloseDetailsHandler(this._callback.closeDetailsClick);
+    this.setControlClickHandler(this._callback.controlClick);
+  }
+
+  setCloseDetailsHandler = (callback) => {
+    this._callback.closeDetailsClick = callback;
+    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#closeDetailsHandler);
+  }
+
+  setControlClickHandler = (callback) => {
+    this._callback.controlClick = callback;
+    this.element.querySelectorAll('.film-details__control-button').forEach((control) => {
+      control.addEventListener('click', this.#controlClickHandler);
+    });
+  }
+
+  #setInnerHandlers = () => {
+    this.element.querySelectorAll('.film-details__emoji-label img').forEach((item) => {
+      item.addEventListener('click', this.#emojiClickHandler);
+    });
+
+    this.element.querySelector('.film-details__comment-input').addEventListener('input', this.#commentInputHandler);
+  }
+
+  #closeDetailsHandler = (evt) => {
     evt.preventDefault();
-    this._callback.addToWatchPopup();
+    this._callback.closeDetailsClick();
   }
 
-  setAlreadyWatchedClickHandler = (callback) => {
-    this._callback.alreadyWatchedPopup = callback;
-    this.element.querySelector('.film-details__control-button--watched').addEventListener('click', this.#alreadyWatchedClickHandler);
-  }
-
-  #alreadyWatchedClickHandler = (evt) => {
+  #controlClickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.alreadyWatchedPopup();
+    this._callback.controlClick(PopupView.parseDataToMovie(this._data), evt.target.getAttribute('name'));
   }
 
-  setAddToFavoriteClickHandler = (callback) => {
-    this._callback.addToFavoritePopup = callback;
-    this.element.querySelector('.film-details__control-button--favorite').addEventListener('click', this.#addToFavoriteClickHandler);
-  }
-
-  #addToFavoriteClickHandler = (evt) => {
+  #emojiClickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.addToFavoritePopup();
+    this.updateData({
+      activeEmoji: evt.target.dataset.emoji
+    });
+  }
+
+  #commentInputHandler = (evt) => {
+    evt.preventDefault();
+    this.updateData({
+      commentText: evt.target.value,
+    }, true);
+  }
+
+  static parseMovieToData = (movie) => ({
+    ...movie,
+    activeEmoji: movie.activeEmoji,
+    commentText: null
+  });
+
+  static parseDataToMovie = (data) => {
+    const movie = {...data};
+
+    delete movie.activeEmoji;
+    delete movie.commentText;
+
+    return movie;
   }
 }
 

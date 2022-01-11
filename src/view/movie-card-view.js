@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import {humanizeDuration} from '../utils/utils';
-import AbstractView from './abstract-view';
+import SmartView from './smart-view';
 
 const createMovieCardTemplate = (movie) => {
   const {
@@ -52,62 +52,52 @@ const createMovieCardTemplate = (movie) => {
             <span class="film-card__comments">${comments.length} comments</span>
           </a>
           <div class="film-card__controls">
-            <button class="film-card__controls-item ${watchlistClassName}" type="button">Add to watchlist</button>
-            <button class="film-card__controls-item ${watchedClassName}" type="button">Mark as watched</button>
-            <button class="film-card__controls-item ${favoriteClassName}" type="button">Mark as favorite</button>
+            <button class="film-card__controls-item ${watchlistClassName}" type="button" name="watchlist" >Add to watchlist</button>
+            <button class="film-card__controls-item ${watchedClassName}" type="button" name="watched" >Mark as watched</button>
+            <button class="film-card__controls-item ${favoriteClassName}" type="button" name="favorite" >Mark as favorite</button>
           </div>
         </article>
   `;
 };
 
-export default class MovieCardView extends AbstractView{
-  #movie = null;
-
+export default class MovieCardView extends SmartView{
   constructor(movie) {
     super();
-    this.#movie = movie;
+    this._data = movie;
   }
 
   get template() {
-    return createMovieCardTemplate(this.#movie);
+    return createMovieCardTemplate(this._data);
   }
 
-  setFilmCardClickHandler = (callback) => {
-    this._callback.openPopup = callback;
-    this.element.querySelector('.film-card__link').addEventListener('click', this.#filmCardClickHandler);
+  get movieData() {
+    return this._data;
   }
 
-  #filmCardClickHandler = () => {
-    this._callback.openPopup();
+  restoreHandlers = () => {
+    this.setOpenPopupHandler(this._callback.openDetailsClick);
+    this.setControlClickHandler(this._callback.controlClick);
   }
 
-  setAddToWatchClickHandler = (callback) => {
-    this._callback.addToWatch = callback;
-    this.element.querySelector('.film-card__controls-item--add-to-watchlist').addEventListener('click', this.#addtoWatchListClickHandler);
+  setOpenPopupHandler = (callback) => {
+    this._callback.openDetailsClick = callback;
+    this.element.querySelector('.film-card__link').addEventListener('click', this.#openPopupHandler);
   }
 
-  #addtoWatchListClickHandler = (evt) => {
+  setControlClickHandler = (callback) => {
+    this._callback.controlClick = callback;
+    this.element.querySelectorAll('.film-card__controls-item').forEach((control) => {
+      control.addEventListener('click', this.#controlClickHandler);
+    });
+  }
+
+  #openPopupHandler = (evt) => {
     evt.preventDefault();
-    this._callback.addToWatch();
+    this._callback.openDetailsClick();
   }
 
-  setAlreadyWatchedClickHandler = (callback) => {
-    this._callback.alreadyWatched = callback;
-    this.element.querySelector('.film-card__controls-item--mark-as-watched').addEventListener('click', this.#alreadyWatchedClickHandler);
-  }
-
-  #alreadyWatchedClickHandler = (evt) => {
+  #controlClickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.alreadyWatched();
-  }
-
-  setAddToFavoriteClickHandler = (callback) => {
-    this._callback.addToFavorite = callback;
-    this.element.querySelector('.film-card__controls-item--favorite').addEventListener('click', this.#addToFavoriteClickHandler);
-  }
-
-  #addToFavoriteClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.addToFavorite();
+    this._callback.controlClick(this._data, evt.target.getAttribute('name'));
   }
 }
