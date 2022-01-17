@@ -23,12 +23,27 @@ export const createFilterTemplate = (filterItems) => {
 
 export default class FilterView extends AbstractView{
   #filters = null;
-  constructor(filters) {
+  #type = null;
+
+  constructor(filters, type) {
     super();
     this.#filters = filters;
+    this.#type = type;
   }
 
   get template() {
-    return createFilterTemplate(this.#filters);
+    return createFilterTemplate(this.#filters, this.#type);
+  }
+
+  setTypeChangeHandler = (callback) => {
+    this._callback.typeChange = callback;
+    this.element.querySelectorAll('.main-navigation__item').forEach((filterButton) => {
+      filterButton.addEventListener('click', this.#typeChangeHandler);
+    });
+  }
+
+  #typeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.typeChange(evt.target.dataset.filter);
   }
 }
