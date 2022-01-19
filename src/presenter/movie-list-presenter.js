@@ -23,22 +23,17 @@ export default class MovieListPresenter {
   #moviesModel = null;
   #commentsModel = null;
   #filterModel = null;
-
   #boardComponent = new MoviesBoardView();
   #showMoreButtonComponent = new LoadMoreButtonView();
-
   #filmsListComponent = new MovieListView(TITLE_SECTION_MAIN);
   #topMoviesComponent = new MovieListView(TITLE_SECTION_TOP);
   #commentedMoviesComponent = new MovieListView(TITLE_SECTION_COMMENTED);
   #filmsContainerComponent = new MoviesListContainerView();
-
   #moviePopupComponent = null;
   #noFilmsComponent = null;
   #sortComponent = null;
-
   #renderedCardsCount = MOVIES_COUNT_PER_STEP;
   #renderedCards = new Map;
-
   #currentSortType = SortType.DEFAULT;
   #filterType = FilterType.ALL;
 
@@ -90,6 +85,7 @@ export default class MovieListPresenter {
   #renderCard = (container, movie) => {
     const cardComponent = new MovieCardView(movie);
     render(container, cardComponent);
+    // console.log(cardComponent, 'cardComponent');
 
     cardComponent.setOpenPopupHandler(() => {
       this.#replaceCardToPopup(cardComponent.movieData);
@@ -240,7 +236,6 @@ export default class MovieListPresenter {
     if (this.#moviePopupComponent !== null) {
       this.#replacePopupToCard();
     }
-
     this.#moviePopupComponent = new PopupView(movie, this.#commentsModel.getMovieComment(movie));
 
     document.body.classList.add('hide-overflow');
