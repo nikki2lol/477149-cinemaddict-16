@@ -58,3 +58,17 @@ export const updateItem = (items, update) => {
 export const sortByDate = (x, y) => y.movieData.releaseDate - x.movieData.releaseDate;
 
 export const sortByRating = (x, y) => y.movieData.rating - x.movieData.rating;
+
+export const getSortedFilms = (films, sortType) => (
+  films.sort((current, next) => {
+    if (sortType === 'date') {
+      return dayjs(next.movieData.releaseDate).diff(dayjs(current.movieData.releaseDate));
+    }
+    if (sortType === 'rating') {
+      return next.movieData.rating - current.movieData.rating;
+    }
+    if (sortType === 'comments') {
+      return next.comments.length - current.comments.length;
+    }
+  })
+);

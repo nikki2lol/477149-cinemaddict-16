@@ -1,21 +1,19 @@
 import AbstractView from './abstract-view';
 
-const createMovieListTemplate = () => `<section class="films-list">
-    <h2 class="films-list__title visually-hidden">All movies. Upcoming</h2>
-    <div class="films-list__container"></div>
+const createMovieListTemplate = (title) => `<section class="films-list">
+    <h2 class="films-list__title">${title}</h2>
     </section>
 `;
 
 export default class MovieListView extends AbstractView {
-  #container = null;
+  #title = '';
 
-  get template() {
-    return createMovieListTemplate();
+  constructor(title) {
+    super();
+    this.#title = title;
   }
 
-  get container() {
-    this.#container = this.element.querySelector('.films-list__container');
-
-    return this.#container;
+  get template() {
+    return createMovieListTemplate(this.#title);
   }
 }
