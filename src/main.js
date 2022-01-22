@@ -1,14 +1,15 @@
+import {COMMENTS_TOTAL, MOVIES_TOTAL, ScreenView} from './const';
 import {render} from './utils/render';
 import {generateMovieCard} from './mock/movie';
 import {generateComment} from './mock/comment';
-import MovieListPresenter from './presenter/movie-list-presenter';
+import MoviesPresenter from './presenter/movies-presenter';
+import NavigationPresenter from './presenter/menu-presenter';
+import StatsPresenter from './presenter/stats-presenter';
+import FilterModel from './models/filters-model';
 import RankView from './view/rank-view';
-import {COMMENTS_TOTAL, MOVIES_TOTAL} from './const';
-import StatsView from './view/stats-view';
-import FilterPresenter from './presenter/filters-presenter';
+import FooterStatsView from './view/footer-stats-view';
 import MoviesModel from './models/movies-model';
 import CommentsModel from './models/comments-model';
-import FilterModel from './models/filters-model';
 
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');
@@ -18,17 +19,28 @@ const movies = Array.from({length: MOVIES_TOTAL}, generateMovieCard);
 const comments = Array.from({length: COMMENTS_TOTAL}, generateComment);
 
 const moviesModel = new MoviesModel();
-moviesModel.movies = movies;
-
 const commentsModel = new CommentsModel();
-commentsModel.comments = comments;
-
 const filterModel = new FilterModel();
 
-const moviesPresenter = new MovieListPresenter(main, moviesModel, commentsModel, filterModel);
-const filtersPresenter = new FilterPresenter(main, filterModel, moviesModel);
+moviesModel.movies = movies;
+commentsModel.comments = comments;
+
+const moviesPresenter = new MoviesPresenter(main, moviesModel, commentsModel, filterModel);
+const statsPresenter = new StatsPresenter(main, moviesModel);
+
+const handleMenuClick = (screenView) => {
+  if (screenView === ScreenView.STATS) {
+    moviesPresenter.destroy();
+    statsPresenter.init();
+  } else {
+    statsPresenter.destroy();
+    moviesPresenter.init();
+  }
+};
+
+const navigationPresenter = new NavigationPresenter(main, moviesModel, filterModel, handleMenuClick);
 
 render(header, new RankView(moviesModel));
-filtersPresenter.init();
+navigationPresenter.init();
 moviesPresenter.init();
-render(footer, new StatsView(movies.length));
+render(footer, new FooterStatsView(movies.length));

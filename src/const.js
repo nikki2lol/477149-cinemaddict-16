@@ -1,4 +1,4 @@
-export const MOVIES_TOTAL = 15;
+export const MOVIES_TOTAL = 45;
 export const MOVIES_TOTAL_SUB = 2;
 export const COMMENTS_TOTAL = 100;
 export const MOVIES_COUNT_PER_STEP = 5;
@@ -38,3 +38,16 @@ export const NoTasksTextContent = {
 export const TITLE_SECTION_MAIN = 'All movies. Upcoming';
 export const TITLE_SECTION_TOP = 'Top rated';
 export const TITLE_SECTION_COMMENTED = 'Most commented';
+
+export const ScreenView = {
+  MOVIES: 'films',
+  STATS: 'stats'
+};
+
+export const StatsFilterType = {
+  ALL: {type: 'all-time', name: 'All time'},
+  TODAY: {type: 'today', name: 'Today'},
+  WEEK: {type: 'week', name: 'Week'},
+  MONTH: {type: 'month', name: 'Month'},
+  YEAR: {type: 'year', name: 'Year'}
+};

@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+
+dayjs.extend(duration);
 
 export const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
@@ -27,40 +30,29 @@ export const getRandomList = (array, maxLength) => {
 
 export const generateRandomDate = (start, end = dayjs()) => dayjs(start.valueOf() + Math.random() * (end.valueOf() - start.valueOf()));
 
-export const humanizeDuration = (duration) =>{
-  if (duration < 60){
-    return `${duration}m`;
+export const humanizeDuration = (runtime) =>{
+  if (runtime < 60){
+    return `${runtime}m`;
   } else{
-    const hours = Math.floor(duration / 60);
-    const minutes = duration % 60;
+    const hours = Math.floor(runtime / 60);
+    const minutes = runtime % 60;
     return `${hours}h ${minutes}m`;
   }
+};
+export const getDurationStats = (minutes) => {
+  const time = dayjs.duration(minutes, 'minutes');
+  return {
+    hours: time.format('H'),
+    minutes: time.format('m')
+  };
 };
 
 export const humanizeReleaseDate = (releaseDate) => dayjs(releaseDate).format('D MMMM YYYY');
 
 export const humanizeCommentDate = (commentDate) => dayjs(commentDate).format('YYYY/MM/DD HH:mm');
 
-export const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1),
-  ];
-};
-
-export const sortByDate = (x, y) => y.movieData.releaseDate - x.movieData.releaseDate;
-
-export const sortByRating = (x, y) => y.movieData.rating - x.movieData.rating;
-
-export const getSortedFilms = (films, sortType) => (
-  films.sort((current, next) => {
+export const getSortedMovies = (movies, sortType) => (
+  movies.sort((current, next) => {
     if (sortType === 'date') {
       return dayjs(next.movieData.releaseDate).diff(dayjs(current.movieData.releaseDate));
     }

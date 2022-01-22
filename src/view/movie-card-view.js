@@ -35,9 +35,9 @@ const createMovieCardTemplate = ({movieData, userData, comments}) => {
 };
 
 export default class MovieCardView extends SmartView {
-  constructor(film) {
+  constructor(movie) {
     super();
-    this._data = film;
+    this._data = movie;
   }
 
   get template() {
