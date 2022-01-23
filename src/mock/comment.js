@@ -8,7 +8,7 @@ export const generateComment = () => {
     id: i.toString(),
     author: getRandomItem(NAMES),
     comment: getRandomItem(COMMENTS),
-    date: humanizeCommentDate(generateRandomDate(dayjs('1994-05-12'))),
+    date: humanizeCommentDate(generateRandomDate(dayjs('2021-02-07'))),
     emotion: getRandomItem(EMOJI)
   };
 

@@ -39,7 +39,7 @@ const createMovieDetailsTemplate = ({movieData, userData, comments, activeEmoji,
     actors,
     releaseDate,
     country,
-    runtime,
+    duration,
     description,
     genres
   } = movieData;
@@ -48,7 +48,7 @@ const createMovieDetailsTemplate = ({movieData, userData, comments, activeEmoji,
   const watchedClassName = userData.alreadyWatched ? 'film-details__control-button--active' : '';
   const favoriteClassName = userData.favorite ? 'film-details__control-button--active' : '';
 
-  const formattedDuration = humanizeDuration(runtime);
+  const formattedDuration = humanizeDuration(duration);
   const formattedReleaseDate = humanizeReleaseDate(releaseDate);
 
   const commentsList = commentsData.map((comment) => createMoviesCommentTemplate(comment)).join('');

@@ -65,7 +65,7 @@ const generateUserData = () => ({
   watchlist: Boolean(getRandomInteger(0, 1)),
   alreadyWatched: Boolean(getRandomInteger(0, 1)),
   favorite: Boolean(getRandomInteger(0, 1)),
-  watchingDate: generateRandomDate(dayjs('1994-05-12'), dayjs()),
+  watchingDate: generateRandomDate(dayjs().subtract(1, 'year'), dayjs()),
 });
 
 export const generateMovieCard = () => ({

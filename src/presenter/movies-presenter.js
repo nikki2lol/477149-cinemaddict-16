@@ -8,7 +8,7 @@ import {
   TITLE_SECTION_TOP, UpdateType
 } from '../const';
 import {render, RenderPosition, remove} from '../utils/render';
-import {getSortedFilms} from '../utils/utils';
+import {getSortedMovies} from '../utils/utils';
 import {filter} from '../utils/filter';
 import MoviesBoardView from '../view/movies-board-view';
 import MovieListView from '../view/movie-list-view';
@@ -18,7 +18,7 @@ import MoviesListContainerView from '../view/movie-list-container-view';
 import MovieCardView from '../view/movie-card-view';
 import PopupView from '../view/popup-view';
 
-export default class MovieListPresenter {
+export default class MoviesPresenter {
   #boardContainer = null;
   #moviesModel = null;
   #commentsModel = null;
@@ -42,9 +42,6 @@ export default class MovieListPresenter {
     this.#moviesModel = moviesModel;
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
-
-    this.#moviesModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
   get movies() {
@@ -52,7 +49,7 @@ export default class MovieListPresenter {
     const movies = this.#moviesModel.movies;
     const filteredMovies = filter[this.#filterType](movies);
 
-    return this.#currentSortType === SortType.DEFAULT ? filteredMovies : getSortedFilms(filteredMovies, this.#currentSortType);
+    return this.#currentSortType === SortType.DEFAULT ? filteredMovies : getSortedMovies(filteredMovies, this.#currentSortType);
   }
 
   get comments() {
@@ -61,8 +58,20 @@ export default class MovieListPresenter {
 
   init = () => {
     render(this.#boardContainer, this.#boardComponent);
+
+    this.#moviesModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#handleModelEvent);
     this.#renderBoard();
     this.#renderExtraFilms();
+  }
+
+  destroy = () => {
+    this.#clearBoard({resetRenderedCount: true, resetSortType: true});
+    this.#clearExtraFilms();
+
+    remove(this.#boardComponent);
+    this.#moviesModel.removeObserver(this.#handleModelEvent);
+    this.#filterModel.removeObserver(this.#handleModelEvent);
   }
 
   #handleSortTypeChange = (newSort) => {
@@ -85,7 +94,6 @@ export default class MovieListPresenter {
   #renderCard = (container, movie) => {
     const cardComponent = new MovieCardView(movie);
     render(container, cardComponent);
-    // console.log(cardComponent, 'cardComponent');
 
     cardComponent.setOpenPopupHandler(() => {
       this.#replaceCardToPopup(cardComponent.movieData);
@@ -112,9 +120,9 @@ export default class MovieListPresenter {
   #handleMoreButtonClick = () => {
     const filmsCount = this.movies.length;
     const newRenderedCount = Math.min(filmsCount, this.#renderedCardsCount + MOVIES_COUNT_PER_STEP);
-    const films = this.movies.slice(this.#renderedCardsCount, newRenderedCount);
+    const movies = this.movies.slice(this.#renderedCardsCount, newRenderedCount);
 
-    this.#renderCards(films);
+    this.#renderCards(movies);
     this.#renderedCardsCount = newRenderedCount;
 
     if (this.#renderedCardsCount >= filmsCount) {
@@ -131,27 +139,27 @@ export default class MovieListPresenter {
 
   #renderFullList = () => {
     const filmsCount = this.movies.length;
-    const films = this.movies.slice(0, Math.min(filmsCount, this.#renderedCardsCount));
+    const movies = this.movies.slice(0, Math.min(filmsCount, this.#renderedCardsCount));
 
     this.#filmsListComponent.element.querySelector('.films-list__title').classList.add('visually-hidden');
     render(this.#boardComponent, this.#filmsListComponent, RenderPosition.AFTERBEGIN);
     render(this.#filmsListComponent, this.#filmsContainerComponent);
 
-    this.#renderCards(films);
+    this.#renderCards(movies);
 
     if (filmsCount > this.#renderedCardsCount) {
       this.#renderMoreButton();
     }
   }
 
-  #renderExtraList = (component, films) => {
+  #renderExtraList = (component, movies) => {
     component.element.classList.add('films-list--extra');
     render(this.#boardComponent, component);
 
     const containerComponent = new MoviesListContainerView();
     render(component, containerComponent);
 
-    films.forEach((movie) => this.#renderCard(containerComponent, movie));
+    movies.forEach((movie) => this.#renderCard(containerComponent, movie));
   }
 
   #renderExtraFilms = () => {
@@ -199,6 +207,7 @@ export default class MovieListPresenter {
     this.#renderFullList();
   };
 
+
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
       case ActionType.UPDATE_CARD:
@@ -221,7 +230,11 @@ export default class MovieListPresenter {
         this.#updateCard(data);
         break;
       case UpdateType.MINOR:
-        this.#updateCard(data);
+        this.#clearBoard();
+        this.#renderBoard();
+        if (this.#moviePopupComponent !== null) {
+          this.#updatePopup(data);
+        }
         break;
       case UpdateType.MAJOR:
         this.#clearBoard({resetRenderedCount: true, resetSortType: true});
@@ -230,17 +243,13 @@ export default class MovieListPresenter {
     }
   }
 
-
-  // то что надо бы хорошему вынести в отдельный презeнтер
   #replaceCardToPopup = (movie) => {
     if (this.#moviePopupComponent !== null) {
       this.#replacePopupToCard();
     }
     this.#moviePopupComponent = new PopupView(movie, this.#commentsModel.getMovieComment(movie));
-
     document.body.classList.add('hide-overflow');
     render(document.body, this.#moviePopupComponent);
-
     this.#moviePopupComponent.setCloseDetailsHandler(this.#replacePopupToCard);
     this.#moviePopupComponent.setControlClickHandler(this.#handleControlClick);
     this.#moviePopupComponent.setDeleteCommentHandler(this.#deleteComment);
@@ -250,6 +259,15 @@ export default class MovieListPresenter {
     document.body.classList.remove('hide-overflow');
     document.removeEventListener('keydown', this.#handleKeydown);
     remove(this.#moviePopupComponent);
+  }
+
+  #updatePopup = (updatedMovie) => {
+    if (this.#moviePopupComponent.movieData.id === updatedMovie.id) {
+      this.#moviePopupComponent.updateData({
+        movie: updatedMovie,
+        comments: this.#commentsModel.getMovieComment(updatedMovie)
+      });
+    }
   }
 
   #handleKeydown = (evt) => {
@@ -262,18 +280,15 @@ export default class MovieListPresenter {
     }
   }
 
-  #updateCard = (updatedFilm) => {
-    const movieCard = this.#renderedCards.get(updatedFilm.id);
+  #updateCard = (updatedMovie) => {
+    const movieCard = this.#renderedCards.get(updatedMovie.id);
 
     if (movieCard) {
-      movieCard.updateData(updatedFilm);
+      movieCard.updateData(updatedMovie);
     }
 
-    if (this.#moviePopupComponent !== null && this.#moviePopupComponent.movieData.id === updatedFilm.id) {
-      this.#moviePopupComponent.updateData({
-        movie: updatedFilm,
-        comments: this.#commentsModel.getMovieComment(updatedFilm)
-      });
+    if (this.#moviePopupComponent !== null) {
+      this.#updatePopup(updatedMovie);
     }
 
     this.#clearExtraFilms();
@@ -281,10 +296,10 @@ export default class MovieListPresenter {
   }
 
   #handleControlClick = (movie, controlType) => {
-    let updatedFilm = null;
+    let updatedMovie = null;
 
     if (controlType === 'watchlist') {
-      updatedFilm = {
+      updatedMovie = {
         ...movie,
         userData: {
           ...movie.userData,
@@ -294,7 +309,7 @@ export default class MovieListPresenter {
     }
 
     if (controlType === 'watched') {
-      updatedFilm = {
+      updatedMovie = {
         ...movie,
         userData: {
           ...movie.userData,
@@ -305,7 +320,7 @@ export default class MovieListPresenter {
     }
 
     if (controlType === 'favorite') {
-      updatedFilm = {
+      updatedMovie = {
         ...movie,
         userData: {
           ...movie.userData,
@@ -314,7 +329,7 @@ export default class MovieListPresenter {
       };
     }
 
-    this.#handleViewAction(ActionType.UPDATE_CARD, UpdateType.MINOR, updatedFilm);
+    this.#handleViewAction(ActionType.UPDATE_CARD, UpdateType.MINOR, updatedMovie);
   }
 
   #addComment = () => {

@@ -1,6 +1,7 @@
 import AbstractObservable from '../utils/abstract-observable';
 import {MOVIES_TOTAL_SUB} from '../const';
-import {getSortedFilms} from '../utils/utils';
+import {getSortedMovies} from '../utils/utils';
+import {filter} from '../utils/filter';
 
 export default class MoviesModel extends AbstractObservable {
   #movies = [];
@@ -14,37 +15,55 @@ export default class MoviesModel extends AbstractObservable {
   }
 
   get topMovies() {
-    return getSortedFilms([...this.movies], 'rating').slice(0, MOVIES_TOTAL_SUB);
+    return getSortedMovies([...this.movies], 'rating').slice(0, MOVIES_TOTAL_SUB);
   }
 
   get commentedMovies() {
-    return getSortedFilms([...this.movies], 'comments').slice(0, MOVIES_TOTAL_SUB);
+    return getSortedMovies([...this.movies], 'comments').slice(0, MOVIES_TOTAL_SUB);
+  }
+
+  get userRank() {
+    const count = filter.history(this.movies).length;
+    if (count === 0) {
+      return null;
+    }
+    if (count <= 10) {
+      return 'Novice';
+    }
+    if (count <= 20) {
+      return 'Fan';
+    }
+    return 'Movie buff';
+  }
+
+  get watchedMovies() {
+    return [...this.movies].filter((movie) => movie.userData.alreadyWatched);
   }
 
   addComment = (type, {movie, comment}) => {
-    const updatedFilm = {
+    const updatedMovie = {
       ...movie,
       comments: [...movie.comments, comment.id]
     };
 
-    delete updatedFilm.activeEmoji;
-    delete updatedFilm.commentText;
+    delete updatedMovie.activeEmoji;
+    delete updatedMovie.commentText;
 
-    this.update(type, updatedFilm);
+    this.update(type, updatedMovie);
   }
 
   deleteComment = (type, id) => {
     const movie = this.movies.find(({comments}) => comments.includes(id));
-    const updatedFilm = {
+    const updatedMovie = {
       ...movie,
       comments: movie.comments.filter((item) => item !== id)
     };
 
-    this.update(type, updatedFilm);
+    this.update(type, updatedMovie);
   }
 
-  update = (type, updatedFilm) => {
-    const index = this.#movies.findIndex((item) => item.id === updatedFilm.id);
+  update = (type, updatedMovie) => {
+    const index = this.#movies.findIndex((item) => item.id === updatedMovie.id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting movie');
@@ -52,10 +71,10 @@ export default class MoviesModel extends AbstractObservable {
 
     this.#movies = [
       ...this.#movies.slice(0, index),
-      updatedFilm,
+      updatedMovie,
       ...this.#movies.slice(index + 1),
     ];
 
-    this._notify(type, updatedFilm);
+    this._notify(type, updatedMovie);
   }
 }

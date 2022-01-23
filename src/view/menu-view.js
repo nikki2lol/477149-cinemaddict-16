@@ -1,20 +1,53 @@
 import AbstractView from './abstract-view';
 
-const createMenuTemplate = () =>
-  `<nav class="main-navigation">
+const createItemTemplate = ({type, name, count}, isActive) => (
+  `<a href="#${type}" data-menu="${type}"
+    class="main-navigation__item ${isActive ? 'main-navigation__item--active' : ''}"
+  >
+    ${name} ${type !== 'all' ? `<span class="main-navigation__item-count">${count}</span>` : ''}
+  </a>`
+);
+
+const createNavigationTemplate = (filters, activeItem) => {
+  const filterList = filters.map((filter) => (
+    createItemTemplate(filter, filter.type === activeItem)
+  )).join('\n');
+
+  return `<nav class="main-navigation">
     <div class="main-navigation__items">
-      <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-      <a href="#watchlist" class="main-navigation__item">Watchlist <span class="main-navigation__item-count">13</span></a>
-      <a href="#history" class="main-navigation__item">History <span class="main-navigation__item-count">4</span></a>
-      <a href="#favorites" class="main-navigation__item">Favorites <span class="main-navigation__item-count">8</span></a>
+      ${filterList}
     </div>
-    <a href="#stats" class="main-navigation__additional">Stats</a>
-  </nav>
-`;
+    <a href="#stats" data-menu="stats"
+      class="main-navigation__additional ${activeItem === 'stats' ? 'main-navigation__additional--active' : ''}"
+    >
+      Stats
+    </a>
+  </nav>`;
+};
 
+export default class MenuView extends AbstractView {
+  #filters = null;
+  #activeItem = null;
 
-export default class menuView extends AbstractView{
+  constructor(filters, activeItem) {
+    super();
+    this.#filters = filters;
+    this.#activeItem = activeItem;
+  }
+
   get template() {
-    return createMenuTemplate();
+    return createNavigationTemplate(this.#filters, this.#activeItem);
+  }
+
+  setItemClickHandler = (callback) => {
+    this._callback.itemClick = callback;
+    this.element.querySelectorAll('[data-menu]').forEach((item) => {
+      item.addEventListener('click', this.#itemClickHandler);
+    });
+  }
+
+  #itemClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.itemClick(evt.target.closest('[data-menu]').dataset.menu);
   }
 }
