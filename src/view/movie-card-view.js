@@ -2,15 +2,15 @@ import dayjs from 'dayjs';
 import {humanizeDuration} from '../utils/utils';
 import SmartView from './smart-view';
 
-const createMovieCardTemplate = ({movieData, userData, comments}) => {
-  const {title, rating, releaseDate, duration, genres, posterPath, description} = movieData;
+const createMovieCardTemplate = ({movieData, userDetails, comments}) => {
+  const {title, rating, releaseDate, runtime, genre, poster, description} = movieData;
 
-  const watchlistClassName = userData.watchlist ? 'film-card__controls-item--active' : '';
-  const watchedClassName = userData.alreadyWatched ? 'film-card__controls-item--active' : '';
-  const favoriteClassName = userData.favorite ? 'film-card__controls-item--active' : '';
+  const watchlistClassName = userDetails.watchlist ? 'film-card__controls-item--active' : '';
+  const watchedClassName = userDetails.alreadyWatched ? 'film-card__controls-item--active' : '';
+  const favoriteClassName = userDetails.favorite ? 'film-card__controls-item--active' : '';
 
   const formattedYear = dayjs(releaseDate).format('YYYY');
-  const formattedDuration = humanizeDuration(duration);
+  const formattedDuration = humanizeDuration(runtime);
   const formattedDescription = (description.length > 140) ? `${description.slice(0, 139)}...` : description;
 
   return `<article class="film-card">
@@ -20,9 +20,9 @@ const createMovieCardTemplate = ({movieData, userData, comments}) => {
       <p class="film-card__info">
         <span class="film-card__year">${formattedYear}</span>
         <span class="film-card__duration">${formattedDuration}</span>
-        <span class="film-card__genre">${genres[0]}</span>
+        <span class="film-card__genre">${genre[0]}</span>
       </p>
-      <img src="./images/posters/${posterPath}" alt="" class="film-card__poster">
+      <img src="${poster}" alt="" class="film-card__poster">
       <p class="film-card__description">${formattedDescription}</p>
       <span class="film-card__comments">${comments.length} comments</span>
     </a>

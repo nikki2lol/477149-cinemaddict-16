@@ -40,10 +40,13 @@ export const humanizeDuration = (runtime) =>{
   }
 };
 export const getDurationStats = (minutes) => {
-  const time = dayjs.duration(minutes, 'minutes');
+  let h = Math.floor(minutes / 60);
+  let m = minutes % 60;
+  h = h < 10 ? 0 : h;
+  m = m < 10 ? 0 : m;
   return {
-    hours: time.format('H'),
-    minutes: time.format('m')
+    hours: h,
+    minutes: m
   };
 };
 

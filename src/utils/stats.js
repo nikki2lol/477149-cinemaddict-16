@@ -6,7 +6,7 @@ import {StatsFilterType} from '../const';
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isToday);
 
-export const isMovieWatchedInPeriod = ({userData: {watchingDate}}, period) => {
+export const isMovieWatchedInPeriod = ({userDetails: {watchingDate}}, period) => {
   if (period === StatsFilterType.ALL.type) {
     return true;
   }
@@ -18,14 +18,12 @@ export const isMovieWatchedInPeriod = ({userData: {watchingDate}}, period) => {
 
 export const getGenresStats = (movies) => {
   const stats = new Map();
-  movies.forEach(({movieData: {genres}}) => {
-    genres.forEach((item) => {
+  movies.forEach(({movieData: {genre}}) => {
+    genre.forEach((item) => {
       const count = stats.has(item) ? stats.get(item) : 0;
       stats.set(item, count + 1);
     });
   });
-
-  // console.log(stats, 'genresStats');
 
   return new Map([...stats.entries()].sort((current, next) => next[1] - current[1]));
 };

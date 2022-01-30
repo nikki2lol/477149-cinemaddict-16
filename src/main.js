@@ -1,7 +1,6 @@
-import {COMMENTS_TOTAL, MOVIES_TOTAL, ScreenView} from './const';
+import {ScreenView, API_AUTHORIZATION, API_URL} from './const';
 import {render} from './utils/render';
-import {generateMovieCard} from './mock/movie';
-import {generateComment} from './mock/comment';
+import ApiService from './api-service';
 import MoviesPresenter from './presenter/movies-presenter';
 import NavigationPresenter from './presenter/menu-presenter';
 import StatsPresenter from './presenter/stats-presenter';
@@ -15,15 +14,11 @@ const header = document.querySelector('.header');
 const main = document.querySelector('.main');
 const footer = document.querySelector('.footer');
 
-const movies = Array.from({length: MOVIES_TOTAL}, generateMovieCard);
-const comments = Array.from({length: COMMENTS_TOTAL}, generateComment);
+const apiService = new ApiService(API_URL, API_AUTHORIZATION);
 
-const moviesModel = new MoviesModel();
-const commentsModel = new CommentsModel();
+const moviesModel = new MoviesModel(apiService);
+const commentsModel = new CommentsModel(apiService, moviesModel);
 const filterModel = new FilterModel();
-
-moviesModel.movies = movies;
-commentsModel.comments = comments;
 
 const moviesPresenter = new MoviesPresenter(main, moviesModel, commentsModel, filterModel);
 const statsPresenter = new StatsPresenter(main, moviesModel);
@@ -40,7 +35,10 @@ const handleMenuClick = (screenView) => {
 
 const navigationPresenter = new NavigationPresenter(main, moviesModel, filterModel, handleMenuClick);
 
-render(header, new RankView(moviesModel));
 navigationPresenter.init();
 moviesPresenter.init();
-render(footer, new FooterStatsView(movies.length));
+
+moviesModel.init().finally(() => {
+  render(header, new RankView(moviesModel));
+  render(footer, new FooterStatsView(moviesModel.movies.length));
+});

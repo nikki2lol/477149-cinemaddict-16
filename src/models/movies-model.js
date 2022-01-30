@@ -1,17 +1,30 @@
 import AbstractObservable from '../utils/abstract-observable';
-import {MOVIES_TOTAL_SUB} from '../const';
+import {MOVIES_TOTAL_SUB, UpdateType} from '../const';
 import {getSortedMovies} from '../utils/utils';
 import {filter} from '../utils/filter';
 
 export default class MoviesModel extends AbstractObservable {
   #movies = [];
+  #apiService = null;
+
+  constructor(apiService) {
+    super();
+    this.#apiService = apiService;
+  }
 
   get movies() {
     return [...this.#movies];
   }
 
-  set movies(movies) {
-    this.#movies = [...movies];
+  init = async () => {
+    try {
+      const movies = await this.#apiService.movies;
+      this.#movies = movies.map(this.#adaptToClient);
+    } catch (err) {
+      this.#movies = [];
+    }
+
+    this._notify(UpdateType.INIT);
   }
 
   get topMovies() {
@@ -37,19 +50,16 @@ export default class MoviesModel extends AbstractObservable {
   }
 
   get watchedMovies() {
-    return [...this.movies].filter((movie) => movie.userData.alreadyWatched);
+    return [...this.movies].filter((movie) => movie.userDetails.alreadyWatched);
   }
 
-  addComment = (type, {movie, comment}) => {
+  addComment = (type, movie, comments) => {
     const updatedMovie = {
-      ...movie,
-      comments: [...movie.comments, comment.id]
+      ...this.movies.find(({id}) => id === movie),
+      comments: comments.map((item) => item.id)
     };
 
-    delete updatedMovie.activeEmoji;
-    delete updatedMovie.commentText;
-
-    this.update(type, updatedMovie);
+    this.#updateList(type, updatedMovie);
   }
 
   deleteComment = (type, id) => {
@@ -59,11 +69,23 @@ export default class MoviesModel extends AbstractObservable {
       comments: movie.comments.filter((item) => item !== id)
     };
 
-    this.update(type, updatedMovie);
+    this.#updateList(type, updatedMovie);
   }
 
-  update = (type, updatedMovie) => {
-    const index = this.#movies.findIndex((item) => item.id === updatedMovie.id);
+
+  updateMovie = async (type, update) => {
+    try {
+      const response = await this.#apiService.updateMovie(update);
+      const updatedMovie = this.#adaptToClient(response);
+
+      this.#updateList(type, updatedMovie);
+    } catch (err) {
+      throw new Error('Can\'t update movie');
+    }
+  }
+
+  #updateList = (type, updatedFilm) => {
+    const index = this.#movies.findIndex((item) => item.id === updatedFilm.id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting movie');
@@ -71,10 +93,44 @@ export default class MoviesModel extends AbstractObservable {
 
     this.#movies = [
       ...this.#movies.slice(0, index),
-      updatedMovie,
+      updatedFilm,
       ...this.#movies.slice(index + 1),
     ];
 
-    this._notify(type, updatedMovie);
+    this._notify(type, updatedFilm);
+  }
+
+  #adaptToClient = (movie) => {
+    const movieData = movie['film_info'];
+    const userDetails = movie['user_details'];
+
+    const adaptedFilm = {
+      id: movie.id,
+      movieData: {
+        ...movieData,
+        altTitle: movieData['alternative_title'],
+        rating: movieData['total_rating'],
+        ageRating: movieData['age_rating'],
+        releaseDate: new Date(movieData['release']['date']),
+        country: movieData['release']['release_country']
+      },
+      userDetails: {
+        ...userDetails,
+        alreadyWatched: userDetails['already_watched'],
+        watchingDate: userDetails['watching_date'] !== null ? new Date(userDetails['watching_date']) : null,
+      },
+      comments: movie.comments
+    };
+
+    // console.log(adaptedFilm, 'before');
+    delete adaptedFilm.movieData['alternative_title'];
+    delete adaptedFilm.movieData['total_rating'];
+    delete adaptedFilm.movieData['age_rating'];
+    delete adaptedFilm.movieData.release['release_country'];
+    delete adaptedFilm.userDetails['already_watched'];
+    delete adaptedFilm.userDetails['watching_date'];
+
+    // console.log(adaptedFilm, 'after');
+    return adaptedFilm;
   }
 }

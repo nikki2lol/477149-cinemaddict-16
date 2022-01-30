@@ -5,7 +5,9 @@ import {
   NoTasksTextContent,
   SortType, TITLE_SECTION_COMMENTED,
   TITLE_SECTION_MAIN,
-  TITLE_SECTION_TOP, UpdateType
+  TITLE_SECTION_TOP,
+  UpdateType,
+  State, TITLE_SECTION_LOADING
 } from '../const';
 import {render, RenderPosition, remove} from '../utils/render';
 import {getSortedMovies} from '../utils/utils';
@@ -28,6 +30,7 @@ export default class MoviesPresenter {
   #filmsListComponent = new MovieListView(TITLE_SECTION_MAIN);
   #topMoviesComponent = new MovieListView(TITLE_SECTION_TOP);
   #commentedMoviesComponent = new MovieListView(TITLE_SECTION_COMMENTED);
+  #loadingComponent = new MovieListView(TITLE_SECTION_LOADING);
   #filmsContainerComponent = new MoviesListContainerView();
   #moviePopupComponent = null;
   #noFilmsComponent = null;
@@ -36,12 +39,14 @@ export default class MoviesPresenter {
   #renderedCards = new Map;
   #currentSortType = SortType.DEFAULT;
   #filterType = FilterType.ALL;
+  #isLoading = true;
 
   constructor(container, moviesModel, commentsModel, filterModel) {
     this.#boardContainer = container;
     this.#moviesModel = moviesModel;
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
+
   }
 
   get movies() {
@@ -52,24 +57,21 @@ export default class MoviesPresenter {
     return this.#currentSortType === SortType.DEFAULT ? filteredMovies : getSortedMovies(filteredMovies, this.#currentSortType);
   }
 
-  get comments() {
-    return this.#commentsModel.comments;
-  }
-
   init = () => {
     render(this.#boardContainer, this.#boardComponent);
 
     this.#moviesModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
     this.#renderBoard();
-    this.#renderExtraFilms();
+    // this.#renderExtraFilms();
   }
 
   destroy = () => {
     this.#clearBoard({resetRenderedCount: true, resetSortType: true});
-    this.#clearExtraFilms();
-
+    // this.#clearExtraFilms();
+    remove(this.#loadingComponent);
     remove(this.#boardComponent);
+
     this.#moviesModel.removeObserver(this.#handleModelEvent);
     this.#filterModel.removeObserver(this.#handleModelEvent);
   }
@@ -80,8 +82,10 @@ export default class MoviesPresenter {
     }
 
     this.#currentSortType = newSort;
+
     this.#clearBoard();
-    this.#renderBoard();
+    this.#renderFullList();
+
   }
 
   #renderSort = () => {
@@ -137,6 +141,10 @@ export default class MoviesPresenter {
     });
   }
 
+  #renderLoading = () => {
+    render(this.#boardComponent, this.#loadingComponent);
+  }
+
   #renderFullList = () => {
     const filmsCount = this.movies.length;
     const movies = this.movies.slice(0, Math.min(filmsCount, this.#renderedCardsCount));
@@ -145,6 +153,7 @@ export default class MoviesPresenter {
     render(this.#boardComponent, this.#filmsListComponent, RenderPosition.AFTERBEGIN);
     render(this.#filmsListComponent, this.#filmsContainerComponent);
 
+    this.#renderSort();
     this.#renderCards(movies);
 
     if (filmsCount > this.#renderedCardsCount) {
@@ -188,6 +197,7 @@ export default class MoviesPresenter {
     remove(this.#sortComponent);
     remove(this.#showMoreButtonComponent);
     remove(this.#filmsListComponent);
+    remove(this.#loadingComponent);
 
     if (this.#noFilmsComponent) {
       remove(this.#noFilmsComponent);
@@ -199,27 +209,63 @@ export default class MoviesPresenter {
   }
 
   #renderBoard = () => {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     if (this.movies.length === 0) {
       this.#renderNoFilms();
       return;
     }
-    this.#renderSort();
+
     this.#renderFullList();
   };
 
+  #resetFormState = () => {
+    this.#moviePopupComponent.updateData({
+      isDisabled: false,
+      deletingCommentId: null,
+    });
+  };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #setViewState = (state, update) => {
+    switch (state) {
+      case State.SAVING:
+        this.#moviePopupComponent.updateData({
+          isDisabled: true,
+        });
+        break;
+      case State.DELETING:
+        this.#moviePopupComponent.updateData({
+          deletingCommentId: update
+        });
+        break;
+    }
+  }
+
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case ActionType.UPDATE_CARD:
-        this.#moviesModel.update(updateType, update);
+        this.#moviesModel.updateMovie(updateType, update);
         break;
       case ActionType.ADD_COMMENT:
-        this.#commentsModel.add(update);
-        this.#moviesModel.addComment(updateType, update);
+        this.#setViewState(State.SAVING);
+        try {
+          await this.#commentsModel.add(updateType, update);
+        } catch (err) {
+          const shakeElement = this.#moviePopupComponent.element.querySelector('.film-details__new-comment');
+          this.#moviePopupComponent.doAnimate(shakeElement, this.#resetFormState);
+        }
         break;
       case ActionType.DELETE_COMMENT:
-        this.#commentsModel.delete(update);
-        this.#moviesModel.deleteComment(updateType, update);
+        this.#setViewState(State.DELETING, update);
+        try {
+          await this.#commentsModel.delete(updateType, update);
+        } catch (err) {
+          const shakeElement = document.getElementById(`${update}`);
+          this.#moviePopupComponent.doAnimate(shakeElement, this.#resetFormState);
+        }
         break;
     }
   }
@@ -240,16 +286,25 @@ export default class MoviesPresenter {
         this.#clearBoard({resetRenderedCount: true, resetSortType: true});
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderBoard();
+        break;
     }
   }
 
-  #replaceCardToPopup = (movie) => {
+  #replaceCardToPopup = async (movie) => {
     if (this.#moviePopupComponent !== null) {
       this.#replacePopupToCard();
     }
-    this.#moviePopupComponent = new PopupView(movie, this.#commentsModel.getMovieComment(movie));
+
+    const comments = await this.#commentsModel.getComments(movie.id);
+    this.#moviePopupComponent = new PopupView(movie, comments);
+
     document.body.classList.add('hide-overflow');
     render(document.body, this.#moviePopupComponent);
+
     this.#moviePopupComponent.setCloseDetailsHandler(this.#replacePopupToCard);
     this.#moviePopupComponent.setControlClickHandler(this.#handleControlClick);
     this.#moviePopupComponent.setDeleteCommentHandler(this.#deleteComment);
@@ -261,11 +316,13 @@ export default class MoviesPresenter {
     remove(this.#moviePopupComponent);
   }
 
-  #updatePopup = (updatedMovie) => {
+  #updatePopup = async (updatedMovie) => {
     if (this.#moviePopupComponent.movieData.id === updatedMovie.id) {
       this.#moviePopupComponent.updateData({
         movie: updatedMovie,
-        comments: this.#commentsModel.getMovieComment(updatedMovie)
+        comments: await this.#commentsModel.getComments(updatedMovie.id),
+        isDisabled: false,
+        deletingId: null
       });
     }
   }
@@ -301,9 +358,9 @@ export default class MoviesPresenter {
     if (controlType === 'watchlist') {
       updatedMovie = {
         ...movie,
-        userData: {
-          ...movie.userData,
-          watchlist: !movie.userData.watchlist
+        userDetails: {
+          ...movie.userDetails,
+          watchlist: !movie.userDetails.watchlist
         }
       };
     }
@@ -311,10 +368,10 @@ export default class MoviesPresenter {
     if (controlType === 'watched') {
       updatedMovie = {
         ...movie,
-        userData: {
-          ...movie.userData,
-          alreadyWatched: !movie.userData.alreadyWatched,
-          watchingDate: !movie.userData.alreadyWatched ? new Date() : null
+        userDetails: {
+          ...movie.userDetails,
+          alreadyWatched: !movie.userDetails.alreadyWatched,
+          watchingDate: !movie.userDetails.alreadyWatched ? new Date() : null
         }
       };
     }
@@ -322,9 +379,9 @@ export default class MoviesPresenter {
     if (controlType === 'favorite') {
       updatedMovie = {
         ...movie,
-        userData: {
-          ...movie.userData,
-          favorite: !movie.userData.favorite
+        userDetails: {
+          ...movie.userDetails,
+          favorite: !movie.userDetails.favorite
         }
       };
     }
@@ -334,15 +391,15 @@ export default class MoviesPresenter {
 
   #addComment = () => {
     const movie = this.#moviePopupComponent.movieData;
+    const movieId = movie.id;
 
     const comment = {
-      id: this.comments[this.comments.length - 1].id + 1,
       comment: movie.commentText,
       emotion: movie.activeEmoji
     };
 
     if (comment.comment && comment.emotion) {
-      this.#handleViewAction(ActionType.ADD_COMMENT, UpdateType.PATCH, {movie, comment});
+      this.#handleViewAction(ActionType.ADD_COMMENT, UpdateType.PATCH, {movieId, comment});
     }
   }
 
