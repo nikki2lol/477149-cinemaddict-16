@@ -15,11 +15,9 @@ const main = document.querySelector('.main');
 const footer = document.querySelector('.footer');
 
 const apiService = new ApiService(API_URL, API_AUTHORIZATION);
-
 const moviesModel = new MoviesModel(apiService);
 const commentsModel = new CommentsModel(apiService, moviesModel);
 const filterModel = new FilterModel();
-
 const moviesPresenter = new MoviesPresenter(main, moviesModel, commentsModel, filterModel);
 const statsPresenter = new StatsPresenter(main, moviesModel);
 
