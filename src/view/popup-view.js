@@ -1,7 +1,7 @@
 import {humanizeDuration, humanizeReleaseDate } from '../utils/utils';
 import SmartView from './smart-view';
-import {EMOJI} from '../mock-data';
 import he from 'he';
+import {EMOJI} from '../const';
 
 const createGenresTemplate = (genre) => (
   `<span class="film-details__genre">${genre}</span>`
