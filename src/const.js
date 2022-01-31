@@ -3,6 +3,11 @@ export const MOVIES_TOTAL_SUB = 2;
 export const COMMENTS_TOTAL = 100;
 export const MOVIES_COUNT_PER_STEP = 5;
 
+export const API_URL = 'https://16.ecmascript.pages.academy/cinemaddict';
+export const API_AUTHORIZATION = 'Basic hesoyam76';
+
+export const ANIMATION_DURATION = 600;
+
 export const SortType = {
   DEFAULT: 'default',
   DATE: 'date',
@@ -13,6 +18,7 @@ export const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT'
 };
 
 export const ActionType = {
@@ -38,6 +44,7 @@ export const NoTasksTextContent = {
 export const TITLE_SECTION_MAIN = 'All movies. Upcoming';
 export const TITLE_SECTION_TOP = 'Top rated';
 export const TITLE_SECTION_COMMENTED = 'Most commented';
+export const TITLE_SECTION_LOADING = 'Loading...';
 
 export const ScreenView = {
   MOVIES: 'films',
@@ -50,4 +57,9 @@ export const StatsFilterType = {
   WEEK: {type: 'week', name: 'Week'},
   MONTH: {type: 'month', name: 'Month'},
   YEAR: {type: 'year', name: 'Year'}
+};
+
+export const State = {
+  SAVING: 'SAVING',
+  DELETING: 'DELETING'
 };

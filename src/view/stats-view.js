@@ -36,7 +36,7 @@ const createStatsTemplate = ({rank, activeFilter, totalCount, totalDuration, top
       <li class="statistic__text-item">
         <h4 class="statistic__item-title">Total duration</h4>
         <p class="statistic__item-text">
-          ${totalDuration.hours > 0 ? `${totalDuration.hours} <span class="statistic__item-description">h</span>` : ''}
+          ${totalDuration.hours || 0} <span class="statistic__item-description">h</span>
           ${totalDuration.minutes || 0} <span class="statistic__item-description">m</span>
         </p>
       </li>
@@ -140,8 +140,6 @@ export default class StatsView extends SmartView {
     if (genresMapList === null) {
       return;
     }
-
-    // console.log(genresMapList, 'genresMapList');
 
     const statisticCtx = this.element.querySelector('.statistic__chart');
     statisticCtx.height = BAR_HEIGHT * genresMapList.size;
