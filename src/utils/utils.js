@@ -52,8 +52,6 @@ export const getDurationStats = (minutes) => {
 
 export const humanizeReleaseDate = (releaseDate) => dayjs(releaseDate).format('D MMMM YYYY');
 
-export const humanizeCommentDate = (commentDate) => dayjs(commentDate).format('YYYY/MM/DD HH:mm');
-
 export const getSortedMovies = (movies, sortType) => (
   movies.sort((current, next) => {
     if (sortType === 'date') {
