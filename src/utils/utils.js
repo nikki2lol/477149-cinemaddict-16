@@ -46,7 +46,7 @@ export const getDurationStats = (minutes) => {
   m = m < 10 ? 0 : m;
   return {
     hours: h,
-    minutes: m
+    minutes: m,
   };
 };
 

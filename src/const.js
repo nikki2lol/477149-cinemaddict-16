@@ -61,3 +61,5 @@ export const State = {
   SAVING: 'SAVING',
   DELETING: 'DELETING',
 };
+
+export const EMOJI = ['smile', 'sleeping', 'puke', 'angry'];
