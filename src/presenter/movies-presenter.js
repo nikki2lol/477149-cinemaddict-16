@@ -27,11 +27,11 @@ export default class MoviesPresenter {
   #filterModel = null;
   #boardComponent = new MoviesBoardView();
   #showMoreButtonComponent = new LoadMoreButtonView();
+  #filmsContainerComponent = new MoviesListContainerView();
   #filmsListComponent = new MovieListView(TITLE_SECTION_MAIN);
   #topMoviesComponent = new MovieListView(TITLE_SECTION_TOP);
   #commentedMoviesComponent = new MovieListView(TITLE_SECTION_COMMENTED);
   #loadingComponent = new MovieListView(TITLE_SECTION_LOADING);
-  #filmsContainerComponent = new MoviesListContainerView();
   #moviePopupComponent = null;
   #noFilmsComponent = null;
   #sortComponent = null;
@@ -46,7 +46,6 @@ export default class MoviesPresenter {
     this.#moviesModel = moviesModel;
     this.#commentsModel = commentsModel;
     this.#filterModel = filterModel;
-
   }
 
   get movies() {
@@ -63,12 +62,11 @@ export default class MoviesPresenter {
     this.#moviesModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
     this.#renderBoard();
-    // this.#renderExtraFilms();
   }
 
   destroy = () => {
     this.#clearBoard({resetRenderedCount: true, resetSortType: true});
-    // this.#clearExtraFilms();
+
     remove(this.#loadingComponent);
     remove(this.#boardComponent);
 
@@ -82,8 +80,7 @@ export default class MoviesPresenter {
     }
 
     this.#currentSortType = newSort;
-
-    this.#clearBoard();
+    this.#clearFullList();
     this.#renderFullList();
 
   }
@@ -101,7 +98,8 @@ export default class MoviesPresenter {
 
     cardComponent.setOpenPopupHandler(() => {
       this.#replaceCardToPopup(cardComponent.movieData);
-      document.addEventListener('keydown', this.#handleKeydown);
+      document.addEventListener('keydown', this.#escKeyDownHandler);
+      document.addEventListener('keydown', this.#enterKeyDownHandler);
     });
 
     cardComponent.setControlClickHandler(this.#handleControlClick);
@@ -186,7 +184,7 @@ export default class MoviesPresenter {
     remove(this.#commentedMoviesComponent);
   }
 
-  #clearBoard = ({resetRenderedCount = false, resetSortType = false} = {}) => {
+  #clearFullList = ({resetRenderedCount = false} = {}) => {
     this.#renderedCards.forEach((card) => remove(card));
     this.#renderedCards.clear();
 
@@ -197,7 +195,11 @@ export default class MoviesPresenter {
     remove(this.#sortComponent);
     remove(this.#showMoreButtonComponent);
     remove(this.#filmsListComponent);
-    remove(this.#loadingComponent);
+  }
+
+  #clearBoard = ({resetRenderedCount = false, resetSortType = false} = {}) => {
+    this.#clearFullList({resetRenderedCount: resetRenderedCount});
+    this.#clearExtraFilms();
 
     if (this.#noFilmsComponent) {
       remove(this.#noFilmsComponent);
@@ -220,12 +222,13 @@ export default class MoviesPresenter {
     }
 
     this.#renderFullList();
+    this.#renderExtraFilms();
   };
 
   #resetFormState = () => {
     this.#moviePopupComponent.updateData({
       isDisabled: false,
-      deletingCommentId: null,
+      deletingId: null,
     });
   };
 
@@ -238,7 +241,7 @@ export default class MoviesPresenter {
         break;
       case State.DELETING:
         this.#moviePopupComponent.updateData({
-          deletingCommentId: update
+          deletingId: update
         });
         break;
     }
@@ -312,7 +315,8 @@ export default class MoviesPresenter {
 
   #replacePopupToCard = () => {
     document.body.classList.remove('hide-overflow');
-    document.removeEventListener('keydown', this.#handleKeydown);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    document.removeEventListener('keydown', this.#enterKeyDownHandler);
     remove(this.#moviePopupComponent);
   }
 
@@ -327,11 +331,14 @@ export default class MoviesPresenter {
     }
   }
 
-  #handleKeydown = (evt) => {
-    if (evt.key === 'Esc' || evt.key === 'Escape') {
+  #escKeyDownHandler = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
       this.#replacePopupToCard();
     }
+  }
+
+  #enterKeyDownHandler = (evt) => {
     if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       this.#addComment();
     }

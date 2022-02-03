@@ -1,3 +1,4 @@
+import {MAX_DESCRIPTION_LENGTH} from '../const';
 import dayjs from 'dayjs';
 import {humanizeDuration} from '../utils/utils';
 import SmartView from './smart-view';
@@ -11,7 +12,7 @@ const createMovieCardTemplate = ({movieData, userDetails, comments}) => {
 
   const formattedYear = dayjs(releaseDate).format('YYYY');
   const formattedDuration = humanizeDuration(runtime);
-  const formattedDescription = (description.length > 140) ? `${description.slice(0, 139)}...` : description;
+  const formattedDescription = (description.length > MAX_DESCRIPTION_LENGTH) ? `${description.slice(0, MAX_DESCRIPTION_LENGTH - 1)}...` : description;
 
   return `<article class="film-card">
     <a class="film-card__link">

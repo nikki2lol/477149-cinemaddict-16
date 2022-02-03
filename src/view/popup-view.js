@@ -1,4 +1,4 @@
-import {humanizeDuration, humanizeReleaseDate } from '../utils/utils';
+import {getTimeFromNow, humanizeDuration, humanizeReleaseDate} from '../utils/utils';
 import SmartView from './smart-view';
 import he from 'he';
 import {EMOJI} from '../const';
@@ -24,7 +24,7 @@ const createMoviesCommentTemplate = ({id, author, comment, date, emotion}, isDel
       <p class="film-details__comment-text">${(comment)}</p>
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
-        <span class="film-details__comment-day">${date}</span>
+        <span class="film-details__comment-day">${getTimeFromNow(date)}</span>
         <button class="film-details__comment-delete" data-comment="${id}" ${isDeleting ? 'disabled' : ''}>
           ${isDeleting ? 'Deleting...' : 'Delete'}
         </button>
@@ -35,8 +35,7 @@ const createMoviesCommentTemplate = ({id, author, comment, date, emotion}, isDel
 
 const createCommentsTemplate = (comments, activeEmoji, commentText, isDisabled, deletingId) => {
   const commentsList = comments.map((comment) => (
-    createMoviesCommentTemplate(comment, deletingId === comment.id)
-  )).join('\n');
+    createMoviesCommentTemplate(comment, deletingId === comment.id))).join('\n');
   const emojiList = EMOJI.map((emoji) => createEmojiItemTemplate(emoji, activeEmoji, isDisabled)).join('\n');
 
   return `<section class="film-details__comments-wrap">
@@ -76,7 +75,7 @@ const createMovieDetailsTemplate = ({movie: {movieData, userDetails, activeEmoji
     poster,
     writers,
     actors,
-    releaseDate,
+    release,
     country,
     runtime,
     description,
@@ -88,7 +87,7 @@ const createMovieDetailsTemplate = ({movie: {movieData, userDetails, activeEmoji
   const favoriteClassName = userDetails.favorite ? 'film-details__control-button--active' : '';
 
   const formattedDuration = humanizeDuration(runtime);
-  const formattedReleaseDate = humanizeReleaseDate(releaseDate);
+  const formattedReleaseDate = humanizeReleaseDate(release.date);
 
   const genres = genre.map(createGenresTemplate).join('');
   const commentsTemplate = createCommentsTemplate(comments, activeEmoji, commentText, isDisabled, deletingId);
@@ -210,7 +209,7 @@ export default class PopupView extends SmartView{
   setDeleteCommentHandler = (callback) => {
     this._callback.deleteCommentClick = callback;
     this.element.querySelectorAll('.film-details__comment-delete').forEach((button) => {
-      button.addEventListener('click', this.#deleteCommentHandler);
+      button.addEventListener('click', this.deleteCommentClickHandler);
     });
   }
 
@@ -235,7 +234,7 @@ export default class PopupView extends SmartView{
     );
   }
 
-  #deleteCommentHandler = (evt) => {
+  deleteCommentClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.deleteCommentClick(evt.target.dataset.comment);
   }

@@ -122,7 +122,6 @@ export default class MoviesModel extends AbstractObservable {
       comments: movie.comments
     };
 
-    // console.log(adaptedFilm, 'before');
     delete adaptedFilm.movieData['alternative_title'];
     delete adaptedFilm.movieData['total_rating'];
     delete adaptedFilm.movieData['age_rating'];
@@ -130,7 +129,6 @@ export default class MoviesModel extends AbstractObservable {
     delete adaptedFilm.userDetails['already_watched'];
     delete adaptedFilm.userDetails['watching_date'];
 
-    // console.log(adaptedFilm, 'after');
     return adaptedFilm;
   }
 }

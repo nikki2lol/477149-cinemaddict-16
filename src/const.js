@@ -1,5 +1,6 @@
 export const MOVIES_TOTAL_SUB = 2;
 export const MOVIES_COUNT_PER_STEP = 5;
+export const MAX_DESCRIPTION_LENGTH = 140;
 
 export const API_URL = 'https://16.ecmascript.pages.academy/cinemaddict';
 export const API_AUTHORIZATION = 'Basic hesoyam76';
@@ -33,10 +34,10 @@ export const FilterType = {
 };
 
 export const NoTasksTextContent = {
-  [FilterType.ALL]: 'There are no movies in our database',
-  [FilterType.WATCHLIST]: 'There are no movies to watch now',
-  [FilterType.HISTORY]: 'There are no watched movies now',
-  [FilterType.FAVORITES]: 'There are no favorite movies now',
+  [FilterType.ALL.type]: 'There are no movies in our database',
+  [FilterType.WATCHLIST.type]: 'There are no movies to watch now',
+  [FilterType.HISTORY.type]: 'There are no watched movies now',
+  [FilterType.FAVORITES.type]: 'There are no favorite movies now',
 };
 
 export const TITLE_SECTION_MAIN = 'All movies. Upcoming';

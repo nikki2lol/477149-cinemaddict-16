@@ -1,9 +1,10 @@
 import AbstractView from './abstract-view';
 
-const createMovieListTemplate = (title) => `<section class="films-list">
+const createMovieListTemplate = (title) => (
+  `<section class="films-list">
     <h2 class="films-list__title">${title}</h2>
-    </section>
-`;
+    </section>`
+);
 
 export default class MovieListView extends AbstractView {
   #title = '';

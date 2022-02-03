@@ -1,7 +1,7 @@
+import {StatsFilterType} from '../const';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isToday from 'dayjs/plugin/isToday';
-import {StatsFilterType} from '../const';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isToday);

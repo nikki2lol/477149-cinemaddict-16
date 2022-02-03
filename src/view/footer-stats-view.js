@@ -1,10 +1,8 @@
 import AbstractView from './abstract-view';
 
-const createStatsTemplate = (count) =>
-  `<section class="footer__statistics">
-    <p>${count} movies inside</p>
-  </section>
-`;
+const createStatsTemplate = (count) => (
+  `<p>${count} movies inside</p>`
+);
 
 export default class FooterStatsView extends AbstractView{
   #count = null;

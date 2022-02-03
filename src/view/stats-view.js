@@ -1,9 +1,13 @@
+import {StatsFilterType} from '../const';
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import {StatsFilterType} from '../const';
 import SmartView from './smart-view';
 
-const BAR_HEIGHT = 50;
+const CHART_CONST = {
+  BAR_HEIGHT: 50,
+  BACKGROUND_COLOR: '#ffe800',
+  FONT_COLOR: '#ffffff',
+};
 
 const createFilterItemTemplate = ({name, type, checked}) => (
   `<input type="radio" class="statistic__filters-input visually-hidden" name="statistic-filter"
@@ -60,8 +64,8 @@ const renderGenresChart = (statisticCtx, genresMapList) => (
       labels: [...genresMapList.keys()],
       datasets: [{
         data: [...genresMapList.values()],
-        backgroundColor: '#ffe800',
-        hoverBackgroundColor: '#ffe800',
+        backgroundColor: CHART_CONST.BACKGROUND_COLOR,
+        hoverBackgroundColor: CHART_CONST.BACKGROUND_COLOR,
         anchor: 'start',
         barThickness: 24,
       }],
@@ -73,7 +77,7 @@ const renderGenresChart = (statisticCtx, genresMapList) => (
           font: {
             size: 20,
           },
-          color: '#ffffff',
+          color: CHART_CONST.FONT_COLOR,
           anchor: 'start',
           align: 'start',
           offset: 40,
@@ -82,7 +86,7 @@ const renderGenresChart = (statisticCtx, genresMapList) => (
       scales: {
         yAxes: [{
           ticks: {
-            fontColor: '#ffffff',
+            fontColor: CHART_CONST.FONT_COLOR,
             padding: 100,
             fontSize: 20,
           },
@@ -142,7 +146,7 @@ export default class StatsView extends SmartView {
     }
 
     const statisticCtx = this.element.querySelector('.statistic__chart');
-    statisticCtx.height = BAR_HEIGHT * genresMapList.size;
+    statisticCtx.height = CHART_CONST.BAR_HEIGHT * genresMapList.size;
 
     this.#genresChart = renderGenresChart(statisticCtx, genresMapList);
   }
